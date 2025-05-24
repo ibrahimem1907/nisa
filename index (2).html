@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kırmızı mı Mavi mi?</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .start-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10;
+    }
+
+    .start-screen.hidden {
+      display: none;
+    }
+
+    .start-button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .start-button:hover {
+      background-color: #45a049;
+    }
+
+    .gif {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 18px;
+      margin: 10px auto;
+      max-width: 600px;
+    }
+
+    .buttons {
+      margin: 20px;
+      position: relative;
+      width: 600px;
+      height: 200px;
+      max-width: 90vw;
+    }
+
+    .red-button, .blue-button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      position: absolute;
+      color: white; /* Metin rengini beyaz yap */
+    }
+
+    .red-button {
+      background-color: red;
+    }
+
+    .blue-button {
+      background-color: blue;
+    }
+
+    .game-message {
+      margin-top: 20px;
+      font-style: italic;
+      font-size: 16px;
+      color: #ccc;
+      opacity: 0;
+    }
+
+    @keyframes jump {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0); }
+    }
+
+    .red-button.jumping {
+      animation: jump 0.3s ease;
+    }
+
+    @keyframes fly-in {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .game-message.fly {
+      animation: fly-in 0.5s ease forwards;
+      opacity: 1 !important;
+    }
+  </style>
+</head>
+<body>
+  <audio id="audio3" src="song3.mp3" preload="auto" loop></audio>
+
+  <div class="start-screen" id="startScreen">
+    <h1>Oyuna Başla!</h1>
+    <p>Müziği başlatmak ve oyuna geçmek için butona tıkla.</p>
+    <button class="start-button" id="startButton">Müziği Başlat</button>
+  </div>
+
+  <div class="game-content" id="gameContent" style="display: none;">
+    <img class="gif" 
+      src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmdhM296MnFyeTQyd3pjZHcxZnViajVjdW1mNGwwNnBvbGNtMzdxZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/akj83ukXAU4sSDglpU/giphy.gif" 
+      alt="Dans Eden GIF">
+    <h1>Kırmızı Butona Basarsan (basamazsın)</h1>
+    <p>Kırmızı butona basarsan uzak kalmaya devam edeceğiz,
+        mavi butona basarsan eskisinden daha samimi olacağız.
+    </p>
+
+    <div class="buttons">
+      <button id="redButton" class="red-button">Kırmızı</button>
+      <button id="blueButton" class="blue-button">Mavi</button>
+    </div>
+
+    <p id="gameMessage" class="game-message"></p>
+  </div>
+
+  <script>
+    const audio = document.getElementById('audio3');
+    const redButton = document.getElementById('redButton');
+    const blueButton = document.getElementById('blueButton');
+    const gameMessage = document.getElementById('gameMessage');
+    const startScreen = document.getElementById('startScreen');
+    const startButton = document.getElementById('startButton');
+    const gameContent = document.getElementById('gameContent');
+
+    const blueMessages = [
+      "Sonunda doğru butonu buldun",
+      "Kırmızıya asla dokunma kırıcı olma",
+      "eee yazmıcak mısın aw",
+      "wp de bekleyenin var",
+      "DANS DANS DANS"
+    ];
+
+    const annoyingMessages = [
+      "Yok artık yine mi denk geldin?",
+      "Bu kadar mı uzak kalmak istiyorsun",
+      "Bırak peşini, kaçmak istiyor!",
+      "İnatçı mısın nesin!",
+      "Vazgeç artık, Asla yakalayamazsın."
+    ];
+
+    // Başlangıç butonuna tıklama: Müziği başlat ve oyunu göster
+    startButton.addEventListener('click', () => {
+      audio.play().catch((error) => {
+        console.log('Müzik çalma hatası:', error);
+      });
+      startScreen.classList.add('hidden');
+      gameContent.style.display = 'block';
+    });
+
+    // Kırmızı buton: .buttons div'i içinde hareket et
+    redButton.addEventListener('mouseover', () => {
+      const buttonsContainer = document.querySelector('.buttons');
+      const containerWidth = buttonsContainer.offsetWidth - redButton.offsetWidth;
+      const containerHeight = buttonsContainer.offsetHeight - redButton.offsetHeight;
+
+      const randomX = Math.floor(Math.random() * containerWidth);
+      const randomY = Math.floor(Math.random() * containerHeight);
+
+      redButton.style.left = `${randomX}px`;
+      redButton.style.top = `${randomY}px`;
+
+      redButton.classList.add('jumping');
+      setTimeout(() => redButton.classList.remove('jumping'), 300);
+
+      const annoyingText = annoyingMessages[Math.floor(Math.random() * annoyingMessages.length)];
+      gameMessage.textContent = annoyingText;
+      gameMessage.classList.remove('fly');
+      void gameMessage.offsetWidth; // reflow trick
+      gameMessage.classList.add('fly');
+    });
+
+    // Mavi buton: sadece mesaj göster
+    blueButton.addEventListener('click', () => {
+      const message = blueMessages[Math.floor(Math.random() * blueMessages.length)];
+      gameMessage.textContent = message;
+
+      gameMessage.classList.remove('fly');
+      void gameMessage.offsetWidth;
+      gameMessage.classList.add('fly');
+    });
+  </script>
+</body>
+</html>
